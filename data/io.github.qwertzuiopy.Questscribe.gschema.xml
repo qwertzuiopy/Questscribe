@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="questscribev2">
+	<schema id="de.egwagi.questscribev2" path="/de/egwagi/questscribev2/">
+	</schema>
+</schemalist>

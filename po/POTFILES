@@ -1,0 +1,7 @@
+data/io.github.qwertzuiopy.Questscribe.desktop.in
+data/io.github.qwertzuiopy.Questscribe.appdata.xml.in
+data/io.github.qwertzuiopy.Questscribe.gschema.xml
+src/main.js
+src/window.js
+src/window.ui
+src/api.js

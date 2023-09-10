@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=questscribev2
+Exec=de.egwagi.questscribev2
+Icon=de.egwagi.questscribev2
+Terminal=false
+Type=Application
+Categories=GTK;
+StartupNotify=true
