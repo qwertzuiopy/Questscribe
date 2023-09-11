@@ -4,6 +4,8 @@
     <file>main.js</file>
     <file>window.js</file>
     <file>api.js</file>
+    <file>modules.js</file>
+    <file>results.js</file>
   </gresource>
 </gresources>
 
