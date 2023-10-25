@@ -25,7 +25,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Adw from 'gi://Adw';
 
-import { get_sync, get_any_async } from "./window.js";
+import { get_sync, get_any_async, score_to_modifier, bookmarks, save_state } from "./window.js";
 import { Card, Link, LinkCard, ModuleCardRow, ModuleText, ModuleTitle, ModuleLevelRow, ImageAsync, ModuleLinkListRow, ModuleShortLinkListRow, ModuleStatListRow, ModuleLinkList, ModuleNTable, Module2Table, ModuleMultiText } from "./modules.js";
 
 export const SearchResult = GObject.registerClass({

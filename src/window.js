@@ -26,7 +26,7 @@ import GLib from 'gi://GLib';
 import Adw from 'gi://Adw';
 
 
-import { SearchResult, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
+import { SearchResult, SearchResultPageMagicGear, SearchResultPageSkill, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
 import {} from "./modules.js";
 
 export const Tab = GObject.registerClass({
@@ -452,12 +452,12 @@ function read_sync(path) {
 
 
 
-var bookmarks = [ { url: "/api/monsters/aboleth", name: "Aboleth" } ];
+export var bookmarks = [ { url: "/api/monsters/aboleth", name: "Aboleth" } ];
 
 
 
 
-function save_state() {
+export function save_state() {
   let data = {
     bookmarks: bookmarks,
   };
