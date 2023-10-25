@@ -29,6 +29,16 @@ import Adw from 'gi://Adw';
 import { SearchResult, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
 import {} from "./modules.js";
 
+export const Tab = GObject.registerClass({
+  GTypeName: 'Tab',
+}, class extends Gtk.Box {
+  constructor() {
+    super({});
+  }
+});
+import { SheetTab } from "./character_sheet.js";
+
+
 import { API } from './api.js';
 
 const use_local = true;
@@ -41,6 +51,8 @@ const session = Soup.Session.new();
 
 
 var window;
+
+
 
 
 export const QuestscribeWindow = GObject.registerClass({
@@ -66,6 +78,7 @@ export const QuestscribeWindow = GObject.registerClass({
       hexpand: true, vexpand: true } );
     this.tabs = [
       new SearchTab({}, new Adw.Leaflet( { can_unfold: false } )),
+      // new SheetTab({}, new Adw.Leaflet( { can_unfold: false } )),
     ];
     this.tab_view.connect("create-window", () => {
       let new_window = new QuestscribeWindow(application);
@@ -139,13 +152,6 @@ function new_tab_from_data(data) {
   return tab;
 }
 
-const Tab = GObject.registerClass({
-  GTypeName: 'Tab',
-}, class extends Gtk.Box {
-  constructor() {
-    super({});
-  }
-});
 
 
 
@@ -324,7 +330,7 @@ const SearchTab = GObject.registerClass({
 
 
 
-const score_to_modifier = (score) => {
+export const score_to_modifier = (score) => {
   let table = {"1": "-5",
     "2": "-4", "3": "-4",
     "4": "-3", "5": "-3",
