@@ -167,8 +167,15 @@ const Filter = GObject.registerClass({
     for (let i in this.options.choices) {
       let box = new Gtk.Box( { spacing: 5, hexpand: true } );
       box.append(new Gtk.Label( { label:this.options.choices[i].title, hexpand: true } ));
-      let dropdown = Gtk.DropDown.new_from_strings(this.options.choices[i].content);
-      dropdown.connect("notify::selected", (d) => { this.options.choices[i].selected = this.options.choices[i].content[d.selected]; this.box.update_search(); });
+      let dropdown;
+      if (this.options.choices[i].content) {
+        dropdown = Gtk.DropDown.new_from_strings(this.options.choices[i].content);
+        dropdown.connect("notify::selected", (d) => { this.options.choices[i].selected = this.options.choices[i].content[d.selected]; this.box.update_search(); });
+      } else {
+        dropdown = Gtk.SpinButton.new_with_range(this.options.choices[i].min, this.options.choices[i].max, 1);
+        dropdown.connect("value-changed", (d) => { this.options.choices[i].value = d.value; this.box.update_search(); });
+      }
+
       dropdown.halign = Gtk.Align.END;
       box.append(dropdown);
       this.popover.append(box);
@@ -520,8 +527,14 @@ const filter_options = {
   },
   Monsters: {
     title: "Monsters",
-    choices: [ { title: "School", content: ["1", "2", "3"] } ],
-    func: (url, o) => { return url.includes("monsters"); },
+    choices: [
+      { title: "Challenge Rating", min: 0, max: 50, value: 0 },
+    ],
+    func: (url, o) => {
+      if (!url.includes("monsters")) return false;
+      let data = get_sync(url);
+      return o.options.choices[0].value == data.challenge_rating;
+    },
   },
   MagicItems: {
     title: "Magic Items",

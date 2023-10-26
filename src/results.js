@@ -429,8 +429,10 @@ export const SearchResultPageMonster = GObject.registerClass({
       this.wrapper.append(new ModuleMultiText(this.data.special_abilities.map( (i) => { return "***"+ (!i.usage ? i.name : (i.name + " (" +i.usage.times+" "+i.usage.type+")" )) + ".***" + i.desc; } )));
     }
 
-    this.wrapper.append(new ModuleTitle("Actions", 4));
-    this.wrapper.append(new ModuleMultiText(this.data.actions.map( (i) => { return "***"+ (!i.usage ? i.name : (i.name + " (" +i.usage.times+" "+i.usage.type+")" )) + ".***" + i.desc; } )));
+    if (this.data.actions) {
+      this.wrapper.append(new ModuleTitle("Actions", 4));
+      this.wrapper.append(new ModuleMultiText(this.data.actions.map( (i) => { return "***"+ (!i.usage ? i.name : (i.name + " (" +i.usage.times+" "+i.usage.type+")" )) + ".***" + i.desc; } )));
+    }
 
     if (this.data.legendary_actions && this.data.legendary_actions.length > 0) {
       this.wrapper.append(new ModuleTitle("Legendary Actions", 4));
