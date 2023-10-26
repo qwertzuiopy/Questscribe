@@ -26,7 +26,7 @@ import GLib from 'gi://GLib';
 import Adw from 'gi://Adw';
 
 
-import { SearchResult, SearchResultPageMagicGear, SearchResultPageSkill, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
+import { SearchResult, SearchResultPageSpell, SearchResultPageMagicGear, SearchResultPageSkill, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
 import {} from "./modules.js";
 
 export const Tab = GObject.registerClass({
