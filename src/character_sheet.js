@@ -12,7 +12,7 @@ import Adw from 'gi://Adw';
 import { score_to_modifier } from "./window.js";
 const Tab = GObject.registerClass({
   GTypeName: 'Tab2',
-}, class extends Gtk.Box {
+}, class extends Adw.NavigationPage {
   constructor() {
     super({});
   }

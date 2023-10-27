@@ -31,9 +31,9 @@ import {} from "./modules.js";
 
 export const Tab = GObject.registerClass({
   GTypeName: 'Tab',
-}, class extends Gtk.Box {
+}, class extends Adw.NavigationPage {
   constructor() {
-    super({});
+    super({title: "no title"});
   }
 });
 import { SheetTab } from "./character_sheet.js";
@@ -61,23 +61,24 @@ export const QuestscribeWindow = GObject.registerClass({
 }, class QuestscribeWindow extends Adw.ApplicationWindow {
   constructor(application) {
     super({ application });
-    this.app_content = new Gtk.Box( { orientation: Gtk.Orientation.VERTICAL } );
+
     this.overview = new Adw.TabOverview( { enable_new_tab: true } );
     this.overview.connect("create-tab", () => {
-      let tab = new SearchTab({}, new Adw.Leaflet( { can_unfold: false } ));
+      let tab = new SearchTab({}, new Adw.NavigationView( {} ));
       this.tab_view.append(tab.navigation_view);
       tab.navigation_view.tab_page = this.tab_view.get_nth_page(this.tab_view.n_pages-1);
       return this.tab_view.get_nth_page(this.tab_view.n_pages-1);
     } );
 
     this.content = this.overview;
-    this.overview.child = this.app_content;
+    this.toolbar_view = new Adw.ToolbarView();
+    this.overview.child = this.toolbar_view;
 
     this.tab_view = new Adw.TabView( {
       halign: Gtk.Align.FILL, valign: Gtk.Align.FILL,
       hexpand: true, vexpand: true } );
     this.tabs = [
-      new SearchTab({}, new Adw.Leaflet( { can_unfold: false } )),
+      new SearchTab({}, new Adw.NavigationView( {} )),
       // new SheetTab({}, new Adw.Leaflet( { can_unfold: false } )),
     ];
     this.tab_view.connect("create-window", () => {
@@ -100,7 +101,7 @@ export const QuestscribeWindow = GObject.registerClass({
 
     this.new_tab = new Gtk.Button( { icon_name: "tab-new-symbolic" } );
     this.new_tab.connect("clicked", () => {
-      let tab = new SearchTab({}, new Adw.Leaflet( { can_unfold: false } ));
+      let tab = new SearchTab({}, new Adw.NavigationView( {} ));
       this.tab_view.append(tab.navigation_view);
       tab.navigation_view.tab_page = this.tab_view.get_nth_page(this.tab_view.n_pages-1);
       tab.navigation_view.tab_view = this.tab_view;
@@ -117,16 +118,17 @@ export const QuestscribeWindow = GObject.registerClass({
 
 
     this.header_bar.pack_end(new Gtk.MenuButton( { icon_name: "open-menu-symbolic", menu_model: this.menu } ));
-    this.app_content.append(this.header_bar);
-    this.app_content.append(this.tab_bar);
-    this.app_content.append(this.tab_view);
+    this.toolbar_view.add_top_bar(this.header_bar);
+    this.toolbar_view.add_top_bar(this.tab_bar);
+    this.toolbar_view.set_content(this.tab_view);
+    this.toolbar_view.top_bar_style = Adw.ToolbarStyle.RAISED;
 
     for (let i in filter_options) {
       filter_actions[i] = new Gio.SimpleAction({
         name: 'filter_' + i,
       });
       filter_actions[i].connect("activate", () => {
-        this.tab_view.selected_page.child.visible_child.add_filter(i);
+        this.tab_view.selected_page.child.visible_page.add_filter(i);
       });
       this.add_action(filter_actions[i]);
     }
@@ -143,7 +145,7 @@ export const QuestscribeWindow = GObject.registerClass({
 
 function new_tab_from_data(data) {
   let tab_view = window.tab_view;
-  let tab = new SearchTab({}, new Adw.Leaflet( { can_unfold: false } ));
+  let tab = new SearchTab({}, new Adw.NavigationView( {} ));
   tab_view.append(tab.navigation_view);
   tab.navigation_view.tab_page = tab_view.get_nth_page(tab_view.n_pages-1);
   tab.navigation_view.tab_view = tab_view;
@@ -199,7 +201,7 @@ const SearchTab = GObject.registerClass({
     setTimeout(() => { this.navigation_view.tab_page.set_title("Search"); }, 1);
     this.navigation_view = navigation_view;
     this.set_hexpand(true)
-    this.navigation_view.append(this);
+    this.navigation_view.push(this);
 
     this.scrolled_window = new Gtk.ScrolledWindow();
     this.scrolled_window.set_halign(Gtk.Align.FILL);
@@ -209,7 +211,7 @@ const SearchTab = GObject.registerClass({
     this.scrolled_window.add_css_class("undershoot-top");
     this.scrolled_window.add_css_class("undershoot-bottom");
 
-    this.append(this.scrolled_window);
+    this.child = this.scrolled_window;
 
     this.back_wrapper = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL });
     this.scrolled_window.set_child(this.back_wrapper);
@@ -394,8 +396,7 @@ export const navigate = (data, navigation_view) => {
     page = new SearchResultPageTrait(page_data, navigation_view);
   }
 
-  navigation_view.append(page);
-  navigation_view.set_visible_child(page);
+  navigation_view.push(new Adw.NavigationPage( { title: "no title", child:page } ));
   log("navigated to " + data.url)
   return;
 }

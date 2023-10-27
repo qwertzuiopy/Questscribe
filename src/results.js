@@ -105,14 +105,12 @@ const ResultPage = GObject.registerClass({
     this.bar.append(this.pin);
     this.back_wrapper.append(this.bar);
     this.back.connect("clicked", () => {
-      this.navigation_view.navigate(Adw.NavigationDirection.BACK);
+      this.navigation_view.pop();
       this.navigation_view.tab_page.set_title(this.old_title);
-      if (this.navigation_view.get_visible_child().pin) {
-        if (this.navigation_view.tab_page.pinned) this.navigation_view.get_visible_child().pin.set_css_classes(["success"]);
-        else this.navigation_view.get_visible_child().pin.set_css_classes([]);
+      if (this.navigation_view.visible_page.pin) {
+        if (this.navigation_view.tab_page.pinned) this.navigation_view.visible_page.pin.set_css_classes(["success"]);
+        else this.navigation_view.visible_page.pin.set_css_classes([]);
       }
-
-      setTimeout(() => { this.navigation_view.remove(this); }, 1000);
     });
 
     this.clamp = new Adw.Clamp({
@@ -684,8 +682,14 @@ export const SearchResultPageTrait = GObject.registerClass({
     }
 
     if (this.data.trait_specific) {
+      // TODO
+      if (this.data.trait_specific.damage_type) console.log("TODO trait_specific");
+      else if (this.data.trait_specific.subtrait_options) {
+        this.statrows.append(new ModuleLinkListRow("choose "+this.data.trait_specific.subtrait_options.choose, this.data.trait_specific.subtrait_options.from.options.map((i) => {return i.item;}), this.navigation_view));
+      } else {
+        this.statrows.append(new ModuleText(this.data.trait_specific.desc));
+      }
       hascontent = true;
-      this.statrows.append(new ModuleText(this.data.trait_specific.desc));
     }
 
     if (hascontent) this.wrapper.append(this.statrows);
