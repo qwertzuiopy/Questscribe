@@ -643,6 +643,34 @@ export const SearchResultPageRace = GObject.registerClass({
 
   }
 });
+export const SearchResultPageSubrace = GObject.registerClass({
+  GTypeName: 'SearchResultPageSubrace',
+}, class extends ResultPage {
+  constructor(data, navigation_view) {
+    super(data, navigation_view);
+
+    let cards = [];
+    cards.push(new LinkCard("Race", this.data.race.name, this.data.race, this.navigation_view));
+
+    for (var i = 0; i < cards.length-6; i += 6) {
+      this.wrapper.append(new ModuleCardRow(cards.slice(i, i+6)));
+    }
+    this.wrapper.append(new ModuleCardRow(cards.slice(i-6, cards.length)));
+
+    this.wrapper.append(new ModuleText(this.data.desc));
+
+    this.statrows = new Gtk.ListBox( { css_classes: ["boxed-list"] } );
+    this.wrapper.append(this.statrows);
+    this.statrows.append(new ModuleShortLinkListRow("Proficiencies", this.data.starting_proficiencies.filter((i) => { return !i.url.includes("saving-throw") }).map((i) => { return get_sync(i.url).reference; } ), this.navigation_view));
+    this.statrows.append(new ModuleStatListRow("Ability bonuses", this.data.ability_bonuses.map((i) => { return "+"+i.bonus.toString() + " " +i.ability_score.name } )));
+    this.statrows.append(new ModuleStatListRow("Languages", this.data.languages.map((i) => i.name)));
+
+    this.wrapper.append(new ModuleTitle("Traits", 4));
+    this.wrapper.append(new ModuleLinkList(this.data.racial_traits.map((i) => { return { item: i }; }), this.navigation_view));
+
+
+  }
+});
 
 
 export const SearchResultPageTrait = GObject.registerClass({
@@ -686,6 +714,8 @@ export const SearchResultPageTrait = GObject.registerClass({
       if (this.data.trait_specific.damage_type) console.log("TODO trait_specific");
       else if (this.data.trait_specific.subtrait_options) {
         this.statrows.append(new ModuleLinkListRow("choose "+this.data.trait_specific.subtrait_options.choose, this.data.trait_specific.subtrait_options.from.options.map((i) => {return i.item;}), this.navigation_view));
+      } else if (this.data.trait_specific.spell_options) {
+        this.statrows.append(new ModuleLinkListRow("choose "+this.data.trait_specific.spell_options.choose, this.data.trait_specific.spell_options.from.options.map((i) => {return i.item;}), this.navigation_view));
       } else {
         this.statrows.append(new ModuleText(this.data.trait_specific.desc));
       }
@@ -698,8 +728,10 @@ export const SearchResultPageTrait = GObject.registerClass({
       this.wrapper.append(new ModuleTitle("Subraces", 4));
       this.wrapper.append(new ModuleLinkList(this.data.subraces.map((i) => { return { item: i}; } ), this.navigation_view));
     }
-    this.wrapper.append(new ModuleTitle("Races", 4));
-    this.wrapper.append(new ModuleLinkList(this.data.races.map((i) => { return { item: i}; } ), this.navigation_view));
+    if (this.data.races.length > 0) {
+      this.wrapper.append(new ModuleTitle("Races", 4));
+      this.wrapper.append(new ModuleLinkList(this.data.races.map((i) => { return { item: i}; } ), this.navigation_view));
+    }
 
   }
 });

@@ -26,7 +26,7 @@ import GLib from 'gi://GLib';
 import Adw from 'gi://Adw';
 
 
-import { SearchResult, SearchResultPageSpell, SearchResultPageMagicGear, SearchResultPageSkill, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
+import { SearchResult, SearchResultPageSpell, SearchResultPageMagicGear, SearchResultPageSkill, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubrace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
 import {} from "./modules.js";
 
 export const Tab = GObject.registerClass({
@@ -310,14 +310,15 @@ const SearchTab = GObject.registerClass({
     this.entry.connect("changed", this.update_search);
 
     this.results = [];
+    this.results = this.results.concat(get_sync("/api/classes").results.map((a) => new SearchResult(a)));
     this.results = this.results.concat(get_sync("/api/races").results.map((a) => new SearchResult(a)));
-    this.results = this.results.concat(get_sync("/api/magic-items").results.map((a) => new SearchResult(a)));
     this.results = this.results.concat(get_sync("/api/monsters").results.map((a) => new SearchResult(a)));
     this.results = this.results.concat(get_sync("/api/spells").results.map((a) => new SearchResult(a)));
     this.results = this.results.concat(get_sync("/api/equipment").results.map((a) => new SearchResult(a)));
+    this.results = this.results.concat(get_sync("/api/magic-items").results.map((a) => new SearchResult(a)));
+    this.results = this.results.concat(get_sync("/api/traits").results.map((a) => new SearchResult(a)));
     this.results = this.results.concat(get_sync("/api/alignments").results.map((a) => new SearchResult(a)));
     this.results = this.results.concat(get_sync("/api/magic-schools").results.map((a) => new SearchResult(a)));
-    this.results = this.results.concat(get_sync("/api/classes").results.map((a) => new SearchResult(a)));
 
 
     for (let i in this.results) {
@@ -390,6 +391,8 @@ export const navigate = (data, navigation_view) => {
     page = new SearchResultPageEquipmentCategory(page_data, navigation_view);
   } else if (page_data.url.includes("subclasses")) {
     page = new SearchResultPageSubclass(page_data, navigation_view);
+  } else if (page_data.url.includes("subraces")) {
+    page = new SearchResultPageSubrace(page_data, navigation_view);
   } else if (page_data.url.includes("races")) {
     page = new SearchResultPageRace(page_data, navigation_view);
   } else if (page_data.url.includes("traits")) {
@@ -513,6 +516,17 @@ const filter_options = {
       return (o.options.choices[0].selected == "Any" || o.options.choices[0].selected == data.school.name)
           && (o.options.choices[1].selected == "Any" || o.options.choices[1].selected == data.level.toString())
           && (o.options.choices[2].selected == "Any" || data.classes.map((i) => i.name).indexOf(o.options.choices[2].selected) != -1);
+    },
+  },
+  Traits: {
+    title: "Traits",
+    choices: [
+      { title: "Classes", content: ["Any"].concat(get_sync("/api/races").results.map((i) => { return i.name; } )), selected: "Any" },
+    ],
+    func: (url, o) => {
+      if (!url.includes("traits")) return false;
+      let data = get_sync(url);
+      return (o.options.choices[0].selected == "Any" || data.races.map((i) => i.name).indexOf(o.options.choices[0].selected) != -1);
     },
   },
   Items: {

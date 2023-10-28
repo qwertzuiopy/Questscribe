@@ -359,17 +359,15 @@ export const ModuleLinkListRow = GObject.registerClass({
       label: label,
       css_classes: ["heading"],
       margin_top: 15, margin_bottom: 10 } ))
-    for (var i = 0; i < stats.length-6; i += 6) {
+    while (stats.length > 0) {
       let hbox = new Gtk.Box( { halign: Gtk.Align.CENTER } );
       vbox.append(hbox);
-      for (let j = i; j < i+6; j++) {
-        hbox.append(new Link(stats[j], navigation_view));
+      for (let chars = 0; chars < 60;) {
+        if (!stats[0]) break;
+        hbox.append(new Link(stats[0], navigation_view));
+        chars += stats[0].name.length;
+        stats.splice(0, 1);
       }
-    }
-    let hbox = new Gtk.Box( { halign: Gtk.Align.CENTER, margin_bottom: 5 } );
-    vbox.append(hbox);
-    for (let j = i; j < stats.length; j++) {
-      hbox.append(new Link(stats[j], navigation_view));
     }
   }
 });
