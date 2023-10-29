@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schemalist gettext-domain="questscribev2">
-	<schema id="de.egwagi.questscribev2" path="/de/egwagi/questscribev2/">
+<schemalist gettext-domain="questscribe">
+	<schema id="io.github.qwertzuiopy.Questscribe" path="/io/github/qwertzuiopy/Questscribe/">
 	</schema>
 </schemalist>
+

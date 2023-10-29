@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=questscribev2
-Exec=de.egwagi.questscribev2
-Icon=de.egwagi.questscribev2
+Name=Questscribe
+Exec=io.github.qwertzuiopy.Questscribe
+Icon=io.github.qwertzuiopy.Questscribe
 Terminal=false
 Type=Application
 Categories=GTK;
