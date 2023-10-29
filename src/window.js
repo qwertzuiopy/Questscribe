@@ -173,6 +173,15 @@ const Filter = GObject.registerClass({
         let dropdown;
         if (this.options.choices[i].content) {
           dropdown = Gtk.DropDown.new_from_strings(this.options.choices[i].content);
+          if (this.options.choices[i].enable_search) {
+            dropdown.enable_search = true;
+            const expression = new Gtk.ClosureExpression(
+              GObject.TYPE_STRING,
+              (obj) => obj.string,
+              null,
+            );
+            dropdown.expression = expression;
+          }
           dropdown.connect("notify::selected", (d) => { this.options.choices[i].selected = this.options.choices[i].content[d.selected]; this.box.update_search(); });
         } else {
           dropdown = Gtk.SpinButton.new_with_range(this.options.choices[i].min, this.options.choices[i].max, 1);
@@ -548,8 +557,8 @@ const filter_options = {
           i != "Ring" &&
           i != "Scroll" &&
           i != "Staff" &&
-          i != "Wand"), selected: "Any" },
-      { title: "Properties", content: ["Any"].concat(get_sync("/api/weapon-properties").results.map((i) => { return i.name; } )), selected: "Any" },
+          i != "Wand"), selected: "Any", enable_search: true },
+      { title: "Properties", content: ["Any"].concat(get_sync("/api/weapon-properties").results.map((i) => { return i.name; } )), selected: "Any", enable_search: true },
     ],
     func: (url, o) => {
       if (!url.includes("equipment")) return false;
