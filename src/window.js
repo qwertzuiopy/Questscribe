@@ -492,10 +492,10 @@ function load_state() {
   let data = JSON.parse(contentsString);
   bookmarks = data.bookmarks;
 
-  for (let i in data.bookmarks) {
+  for (let i in bookmarks) {
     let tab = new_tab_from_data(data.bookmarks[i]);
     tab.navigation_view.tab_view.set_page_pinned(tab.navigation_view.tab_page, true);
-    tab.navigation_view.visible_child.pin.add_css_class("success");
+    tab.navigation_view.visible_page.child.pin.add_css_class("success");
   }
   log("loaded state");
 }
