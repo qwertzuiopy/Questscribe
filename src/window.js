@@ -26,7 +26,7 @@ import GLib from 'gi://GLib';
 import Adw from 'gi://Adw';
 
 
-import { SearchResult, SearchResultPageSpell, SearchResultPageMagicGear, SearchResultPageSkill, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubrace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
+import { SearchResult, SearchResultPageArmor, SearchResultPageSpell, SearchResultPageMagicGear, SearchResultPageSkill, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubrace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
 import {} from "./modules.js";
 
 export const Tab = GObject.registerClass({
@@ -165,27 +165,34 @@ const Filter = GObject.registerClass({
     this.box = box;
     this.options = options;
 
-    this.popover = new Gtk.Box( { orientation: Gtk.Orientation.VERTICAL, spacing: 5 } );
-    for (let i in this.options.choices) {
-      let box = new Gtk.Box( { spacing: 5, hexpand: true } );
-      box.append(new Gtk.Label( { label:this.options.choices[i].title, hexpand: true } ));
-      let dropdown;
-      if (this.options.choices[i].content) {
-        dropdown = Gtk.DropDown.new_from_strings(this.options.choices[i].content);
-        dropdown.connect("notify::selected", (d) => { this.options.choices[i].selected = this.options.choices[i].content[d.selected]; this.box.update_search(); });
-      } else {
-        dropdown = Gtk.SpinButton.new_with_range(this.options.choices[i].min, this.options.choices[i].max, 1);
-        dropdown.connect("value-changed", (d) => { this.options.choices[i].value = d.value; this.box.update_search(); });
+    if (this.options.choices.length > 0) {
+      this.popover = new Gtk.Box( { orientation: Gtk.Orientation.VERTICAL, spacing: 5 } );
+      for (let i in this.options.choices) {
+        let box = new Gtk.Box( { spacing: 5, hexpand: true } );
+        box.append(new Gtk.Label( { label:this.options.choices[i].title, hexpand: true } ));
+        let dropdown;
+        if (this.options.choices[i].content) {
+          dropdown = Gtk.DropDown.new_from_strings(this.options.choices[i].content);
+          dropdown.connect("notify::selected", (d) => { this.options.choices[i].selected = this.options.choices[i].content[d.selected]; this.box.update_search(); });
+        } else {
+          dropdown = Gtk.SpinButton.new_with_range(this.options.choices[i].min, this.options.choices[i].max, 1);
+          dropdown.connect("value-changed", (d) => { this.options.choices[i].value = d.value; this.box.update_search(); });
+        }
+
+        dropdown.halign = Gtk.Align.END;
+        box.append(dropdown);
+        this.popover.append(box);
       }
 
-      dropdown.halign = Gtk.Align.END;
-      box.append(dropdown);
-      this.popover.append(box);
-    }
-    this.button = new Adw.SplitButton( {
+      this.button = new Adw.SplitButton( {
+        label: options.title,
+        valign: Gtk.Align.CENTER, halign: Gtk.Align.CENTER,
+        popover: new Gtk.Popover( { child: this.popover } ) } );
+    } else {
+      this.button = new Gtk.Button( {
       label: options.title,
-      valign: Gtk.Align.CENTER, halign: Gtk.Align.CENTER,
-      popover: new Gtk.Popover( { child: this.popover } ) } );
+      valign: Gtk.Align.CENTER, halign: Gtk.Align.CENTER } );
+    }
     this.child = this.button;
     this.button.connect('clicked', () => { this.box.remove_filter(this); });
   }
@@ -532,12 +539,36 @@ const filter_options = {
   Items: {
     title: "Items",
     choices: [
-      { title: "Categories", content: ["Any"].concat(get_sync("/api/equipment-categories").results.map((i) => { return i.name; } )), selected: "Any" },
+      { title: "Categories", content: ["Any"].concat(get_sync("/api/equipment-categories").results
+        .map((i) => { return i.name; } ))
+        .filter((i) => i != "Land Vehicles" &&
+          i != "Wondrous Items" &&
+          i != "Rod" &&
+          i != "Potion" &&
+          i != "Ring" &&
+          i != "Scroll" &&
+          i != "Staff" &&
+          i != "Wand"), selected: "Any" },
+      { title: "Properties", content: ["Any"].concat(get_sync("/api/weapon-properties").results.map((i) => { return i.name; } )), selected: "Any" },
     ],
     func: (url, o) => {
-      if (!url.includes("equipment") || url.includes("categories")) return false;
+      if (!url.includes("equipment")) return false;
       let data = get_sync(url);
-      return o.options.choices[0].selected == "Any" || o.options.choices[0].selected == data.equipment_category.name;
+
+      let has = (s) =>
+        o.options.choices[0].selected.includes(s) || s.includes(o.options.choices[0].selected);
+
+      return (o.options.choices[0].selected == "Any" || o.options.choices[0].selected == data.equipment_category.name ||
+        (data.gear_category && has(data.gear_category.name)) ||
+        (data.vehicle_category && has(data.vehicle_category)) ||
+        (data.armor_category && has(data.armor_category)) ||
+        (data.weapon_category && has(data.weapon_category)) ||
+        (data.weapon_range && has(data.weapon_range)) ||
+        (data.tool_category && has(data.tool_category))) && (
+        o.options.choices[1].selected == "Any" ||
+        data.properties && data.properties.map((i) => i.name).includes(o.options.choices[1].selected))
+
+
     },
   },
   Monsters: {
@@ -553,13 +584,19 @@ const filter_options = {
   },
   MagicItems: {
     title: "Magic Items",
-    choices: [ {
-      title: "Rarity", content: ["Any", "Varies", "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact"], selected: "Any" }
+    choices: [
+      { title: "Rarity", content: ["Any", "Varies", "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact"], selected: "Any" },
+      { title: "Type", content: ["Any", "Wondrous Item", "Rod", "Potion", "Ring", "Scroll", "Staff", "Wand"], selected: "Any" }
     ],
     func: (url, o) => {
       if (!url.includes("magic-items")) return false;
+      let has = (s) =>
+        o.options.choices[1].selected.includes(s) || s.includes(o.options.choices[1].selected);
       let data = get_sync(url);
-      return o.options.choices[0].selected == "Any" || o.options.choices[0].selected == data.rarity.name;
+      return (o.options.choices[0].selected == "Any" ||
+        o.options.choices[0].selected == data.rarity.name) && (
+        o.options.choices[1].selected == "Any" ||
+        data.equipment_category && has(data.equipment_category.name));
     },
   },
   Classes: {

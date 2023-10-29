@@ -208,20 +208,45 @@ export const SearchResultPageGear = GObject.registerClass({
 
     if (!this.data.quantity) cards.push(new Card("Cost", this.data.cost.quantity.toString() + this.data.cost.unit));
     else cards.push(new Card("Cost", this.data.cost.quantity.toString() + this.data.cost.unit + " per " + this.data.quantity.toString()));
-    if (!this.data.quantity) cards.push(new Card("Weight", this.data.weight.toString() + "lb"));
-    else cards.push(new Card("Weight", this.data.weight.toString() + "lb per " + this.data.quantity.toString()));
+    if (this.data.weight)
+      if (!this.data.quantity) cards.push(new Card("Weight", this.data.weight.toString() + "lb"));
+      else cards.push(new Card("Weight", this.data.weight.toString() + "lb per " + this.data.quantity.toString()));
     if (this.data.gear_category) cards.push(new Card("Type", this.data.gear_category.name));
     else if (this.data.vehicle_category) cards.push(new Card("Type", this.data.vehicle_category));
     else if (this.data.tool_category) cards.push(new Card("Type", this.data.tool_category));
+    else if (this.data.weapon_category) cards.push(new Card("Type", this.data.weapon_category));
+
+    if (this.data.weapon_range) cards.push(new Card("Range", this.data.weapon_range));
     if (cards.length > 4) {
       this.wrapper.append(new ModuleCardRow(cards.slice(0, 3)));
       this.wrapper.append(new ModuleCardRow(cards.slice(3, cards.length)));
     } else
       this.wrapper.append(new ModuleCardRow(cards));
+
+    this.statrows = new Gtk.ListBox( { css_classes: ["boxed-list"] } );
+    let counter = 0;
+    if (this.data.range) {
+      if (this.data.range.long) {
+        this.statrows.append(new ModuleStatListRow("Range", [this.data.range.normal.toString()+" ft normal", this.data.range.long.toString()+" ft long"]));
+      } else {
+        this.statrows.append(new ModuleStatListRow("Range", [this.data.range.normal.toString()+" ft"]));
+      }
+      counter ++;
+    }
+    if (this.data.damage) {
+      this.statrows.append(new ModuleStatListRow("Damage", [this.data.damage.damage_dice+" "+this.data.damage.damage_type.name]));
+    }
+    if (this.data.properties) {
+      this.statrows.append(new ModuleShortLinkListRow("Properties", this.data.properties, this.navigation_view));
+    }
+
+    if (counter > 0) this.wrapper.append(this.statrows);
+
     if (this.data.desc && this.data.desc.length > 0) {
       this.wrapper.append(new ModuleTitle("Description", 3));
       this.wrapper.append(new ModuleMultiText(this.data.desc));
     }
+
 
   }
 });
