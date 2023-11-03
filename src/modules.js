@@ -400,10 +400,34 @@ export const ImageAsync = GObject.registerClass({
       loader.close()
       let img = new Gtk.Picture( { css_classes: ["card"] } );
       img.set_pixbuf(loader.get_pixbuf());
-      let revealer = new Gtk.Revealer( { child: img, transition_type: Gtk.RevealerTransitionType.CROSSFADE } );
+
+      let overlay = new Gtk.Overlay({child: img});
+
+      let revealer = new Gtk.Revealer( { child: overlay, transition_type: Gtk.RevealerTransitionType.CROSSFADE } );
       this.set_child(revealer);
       revealer.set_reveal_child(true);
       this.width_request = -1;
+
+      let button = new Gtk.Button({
+        css_classes:["osd", "circular"],
+        icon_name: "view-fullscreen-symbolic",
+        halign: Gtk.Align.END,
+        valign: Gtk.Align.END,
+        margin_bottom: 5,
+        margin_end: 5 })
+      button.connect("clicked", () => {
+        let dataDir = GLib.get_user_config_dir()
+        let name = image.split(".")[0]
+        name = name.split("/").at(-1)
+        let destination = GLib.build_filenamev([dataDir, name+'.jpeg'])
+        loader.get_pixbuf().savev(destination, "jpeg", null, null)
+        let file = Gio.File.new_for_path(destination)
+        let launcher = new Gtk.FileLauncher({file:file})
+        launcher.launch(null, null, null)
+      })
+      overlay.add_overlay(button);
+
+
     });
     let spinner = new Gtk.Spinner( { halign: Gtk.Align.CENTER, valign: Gtk.Align.CENTER } );
     spinner.start();
