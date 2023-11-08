@@ -29,8 +29,9 @@
             "buildsystem" : "meson",
             "sources" : [
                 {
-                    "type" : "git",
-                    "url" : "file:///home/michael/Projects"
+                    "type" : "archive",
+                    "sha256": "e7098190766bbefec6c08cf9134fe134b9dc3d52df826ee4e161f1134bfa43ab",
+                    "url" : "https://github.com/qwertzuiopy/Questscribe/archive/refs/tags/release.tar.gz"
                 }
             ]
         }

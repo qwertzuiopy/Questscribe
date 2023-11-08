@@ -372,7 +372,7 @@ export const score_to_modifier = (score) => {
     "24": "+7", "25": "+7",
     "26": "+8", "27": "+8",
     "28": "+9", "29": "+9",
-    "30": "wow +10"};
+    "30": "+10"};
   return table[score];
 }
 
