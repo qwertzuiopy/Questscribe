@@ -7,6 +7,7 @@
     <file>modules.js</file>
     <file>results.js</file>
     <file>character_sheet.js</file>
+    <file>dbus.js</file>
   </gresource>
 </gresources>
 

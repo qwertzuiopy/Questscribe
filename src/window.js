@@ -40,6 +40,7 @@ import { SheetTab } from "./character_sheet.js";
 
 
 import { API } from './api.js';
+import { DBUS } from './dbus.js';
 
 const use_local = true;
 
@@ -61,6 +62,9 @@ export const QuestscribeWindow = GObject.registerClass({
 }, class QuestscribeWindow extends Adw.ApplicationWindow {
   constructor(application) {
     super({ application });
+
+
+    let dbus = new DBUS();
 
     this.overview = new Adw.TabOverview( { enable_new_tab: true } );
     this.overview.connect("create-tab", () => {
@@ -133,6 +137,13 @@ export const QuestscribeWindow = GObject.registerClass({
       this.add_action(filter_actions[i]);
     }
 
+
+    let test_action = new Gio.SimpleAction({
+      name: "test",
+    });
+    test_action.connect("activate", () => { log("hallo!"); } );
+    this.add_action(test_action);
+
     window = this;
     try {
       load_state();
@@ -143,7 +154,7 @@ export const QuestscribeWindow = GObject.registerClass({
 });
 
 
-function new_tab_from_data(data) {
+export const new_tab_from_data = (data) => {
   let tab_view = window.tab_view;
   let tab = new SearchTab({}, new Adw.NavigationView( {} ));
   tab_view.append(tab.navigation_view);
