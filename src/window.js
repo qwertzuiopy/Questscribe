@@ -26,7 +26,7 @@ import GLib from 'gi://GLib';
 import Adw from 'gi://Adw';
 
 
-import { SearchResult, SearchResultPageArmor, SearchResultPageSpell, SearchResultPageMagicGear, SearchResultPageSkill, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubrace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
+import { SearchResult, SearchResultPageWeaponProperty, SearchResultPageArmor, SearchResultPageSpell, SearchResultPageMagicGear, SearchResultPageSkill, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubrace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
 import {} from "./modules.js";
 
 export const Tab = GObject.registerClass({
@@ -424,9 +424,11 @@ export const navigate = (data, navigation_view) => {
     page = new SearchResultPageRace(page_data, navigation_view);
   } else if (page_data.url.includes("traits")) {
     page = new SearchResultPageTrait(page_data, navigation_view);
+  } else if (page_data.url.includes("weapon-properties")) {
+    page = new SearchResultPageWeaponProperty(page_data, navigation_view);
   }
 
-  navigation_view.push(new Adw.NavigationPage( { title: "no title", child:page } ));
+  navigation_view.push(new Adw.NavigationPage( { title: "no title", child: page } ));
   log("navigated to " + data.url)
   return;
 }

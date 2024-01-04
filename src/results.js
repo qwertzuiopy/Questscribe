@@ -760,3 +760,12 @@ export const SearchResultPageTrait = GObject.registerClass({
 
   }
 });
+
+export const SearchResultPageWeaponProperty = GObject.registerClass({
+  GTypeName: 'SearchResultPageWeaponProperty',
+}, class extends ResultPage {
+  constructor(data, navigation_view) {
+    super(data, navigation_view);
+    this.wrapper.append(new ModuleMultiText(this.data.desc));
+  }
+});
