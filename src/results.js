@@ -25,7 +25,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Adw from 'gi://Adw';
 
-import { get_sync, get_any_async, score_to_modifier, bookmarks, save_state } from "./window.js";
+import { get_sync, get_any_async, score_to_modifier, bookmarks, toggle_bookmarked, is_bookmarked, save_state } from "./window.js";
 import { Card, Link, LinkCard, ModuleCardRow, ModuleText, ModuleTitle, ModuleLevelRow, ImageAsync, ModuleLinkListRow, ModuleShortLinkListRow, ModuleStatListRow, ModuleLinkList, ModuleNTable, Module2Table, ModuleMultiText } from "./modules.js";
 
 export const SearchResult = GObject.registerClass({
@@ -79,19 +79,17 @@ const ResultPage = GObject.registerClass({
       margin_top: 20, margin_start: 20 });
 
     this.pin = new Gtk.Button({
-      icon_name: "view-pin-symbolic",
+      icon_name: "star-large-symbolic",
       halign: Gtk.Align.END, hexpand: true,
       margin_top: 20, margin_end: 20 });
-    if (this.navigation_view.tab_page.pinned) this.pin.add_css_class("success");
+
+    if (is_bookmarked ({ name: this.data.name, url: this.data.url })) {
+      this.pin.add_css_class("success");
+    }
     this.pin.connect("clicked", () => {
-      this.navigation_view.tab_view.set_page_pinned(this.navigation_view.tab_page, !this.navigation_view.tab_page.pinned);
-      if (this.navigation_view.tab_page.pinned) {
+      if (toggle_bookmarked ({ name: this.data.name, url: this.data.url })) {
         this.pin.set_css_classes(["success"]);
-        bookmarks.push( { name: this.data.name, url: this.data.url } );
-        save_state();
       } else {
-        bookmarks.splice(bookmarks.map((i) => { return i.url; } ).indexOf(this.data.url), 1);
-        save_state();
         this.pin.set_css_classes([]);
       }
     } );
@@ -107,10 +105,6 @@ const ResultPage = GObject.registerClass({
     this.back.connect("clicked", () => {
       this.navigation_view.pop();
       this.navigation_view.tab_page.set_title(this.old_title);
-      if (this.navigation_view.visible_page.pin) {
-        if (this.navigation_view.tab_page.pinned) this.navigation_view.visible_page.pin.set_css_classes(["success"]);
-        else this.navigation_view.visible_page.pin.set_css_classes([]);
-      }
     });
 
     this.clamp = new Adw.Clamp({

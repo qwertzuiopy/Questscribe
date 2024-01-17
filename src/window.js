@@ -20,6 +20,7 @@
 
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
+import Gdk from 'gi://Gdk';
 import GdkPixbuf from 'gi://GdkPixbuf';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -63,6 +64,10 @@ export const QuestscribeWindow = GObject.registerClass({
   constructor(application) {
     super({ application });
 
+    let provider = new Gtk.CssProvider();
+    provider.connect("parsing-error", (_provider, _section, error) => { log(error); });
+    provider.load_from_string(".bookmark-row { padding: 0; } ");
+    Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
     let dbus = new DBUS();
 
@@ -71,6 +76,7 @@ export const QuestscribeWindow = GObject.registerClass({
       let tab = new SearchTab({}, new Adw.NavigationView( {} ));
       this.tab_view.append(tab.navigation_view);
       tab.navigation_view.tab_page = this.tab_view.get_nth_page(this.tab_view.n_pages-1);
+      tab.navigation_view.window = this;
       return this.tab_view.get_nth_page(this.tab_view.n_pages-1);
     } );
 
@@ -83,7 +89,6 @@ export const QuestscribeWindow = GObject.registerClass({
       hexpand: true, vexpand: true } );
     this.tabs = [
       new SearchTab({}, new Adw.NavigationView( {} )),
-      // new SheetTab({}, new Adw.Leaflet( { can_unfold: false } )),
     ];
     this.tab_view.connect("create-window", () => {
       let new_window = new QuestscribeWindow(application);
@@ -95,6 +100,7 @@ export const QuestscribeWindow = GObject.registerClass({
       this.tab_view.append(this.tabs[i].navigation_view);
       this.tabs[i].navigation_view.tab_page = this.tab_view.get_nth_page(i);
       this.tabs[i].navigation_view.tab_view = this.tab_view;
+      this.tabs[i].navigation_view.window = this;
     }
     this.active_tab = 0;
     this.tab_bar = new Adw.TabBar( { view: this.tab_view } );
@@ -117,11 +123,19 @@ export const QuestscribeWindow = GObject.registerClass({
     this.header_bar.pack_start(this.open_overview);
 
     this.menu = new Gio.Menu();
-    this.menu.append_item(Gio.MenuItem.new("Preferences", "app.settings"));
+    // this.menu.append_item(Gio.MenuItem.new("Preferences", "app.settings"));
     this.menu.append_item(Gio.MenuItem.new("About Questscribe", "app.about"));
 
 
     this.header_bar.pack_end(new Gtk.MenuButton( { icon_name: "open-menu-symbolic", menu_model: this.menu } ));
+
+    this.bookmark_list = new Gtk.ListBox();
+    this.bookmark_list.connect("row-activated", (_, row) => {
+      row.activated();
+    });
+    this.bookmark_menu = new Gtk.MenuButton( { icon_name: "star-large-symbolic", popover: new Gtk.Popover( { css_classes: ["menu"], child: this.bookmark_list } ) } );
+    this.header_bar.pack_end(this.bookmark_menu);
+
     this.toolbar_view.add_top_bar(this.header_bar);
     this.toolbar_view.add_top_bar(this.tab_bar);
     this.toolbar_view.set_content(this.tab_view);
@@ -137,18 +151,37 @@ export const QuestscribeWindow = GObject.registerClass({
       this.add_action(filter_actions[i]);
     }
 
-
-    let test_action = new Gio.SimpleAction({
-      name: "test",
-    });
-    test_action.connect("activate", () => { log("hallo!"); } );
-    this.add_action(test_action);
-
     window = this;
     try {
       load_state();
     } catch {
       save_state();
+    }
+
+
+    update_boookmark_menu (this);
+  }
+});
+
+
+
+
+export const BookmarkRow = GObject.registerClass({
+  GTypeName: 'BookmarkRow',
+}, class BookmarkRow extends Gtk.ListBoxRow {
+  constructor(data) {
+    super( { selectable: false, css_classes: ["bookmark-row"]} );
+    this.data = data;
+
+    this.child = new Gtk.Box( { spacing: 10 } );
+    this.child.append(new Gtk.Label({ hexpand: true, label: data.name, margin_start: 8 } ));
+    this.delete_button = new Gtk.Button( { halign: Gtk.Align.END, valign: Gtk.Align.CENTER, margin_top: 0, margin_bottom: 0, icon_name: "edit-clear-symbolic", css_classes: ["flat", "circular"] } );
+    this.delete_button.connect("clicked", () => {
+      toggle_bookmarked(this.data);
+    } );
+    this.child.append(this.delete_button);
+    this.activated = () => {
+      new_tab_from_data(this.data);
     }
   }
 });
@@ -258,7 +291,7 @@ const SearchTab = GObject.registerClass({
     this.back_wrapper.append(this.bar);
 
     this.back = new Gtk.Button({ icon_name: "go-previous-symbolic", halign: Gtk.Align.START, margin_top: 20, margin_start: 20 });
-    this.bar.append(this.back);
+    // this.bar.append(this.back);
     this.bar.append(this.pin);
     this.back.connect("clicked", () => {
       if (!this.navigation_view.can_navigate_back) return;
@@ -494,6 +527,35 @@ function read_sync(path) {
 
 export var bookmarks = [ { url: "/api/monsters/aboleth", name: "Aboleth" } ];
 
+function update_boookmark_menu() {
+  window.bookmark_list.remove_all();
+  for (let i = 0; i < bookmarks.length; i++) {
+    window.bookmark_list.append(new BookmarkRow(bookmarks[i]));
+  }
+}
+
+export function is_bookmarked(data) {
+  for (let i = 0; i < bookmarks.length; i++) {
+    if (bookmarks[i].url == data.url) {
+      return true;
+    }
+  }
+  return false;
+}
+export function toggle_bookmarked(data, bookmarked) {
+  for (let i = 0; i < bookmarks.length; i++) {
+    if (bookmarks[i].url == data.url) {
+      bookmarks.splice(i, 1);
+      save_state();
+      update_boookmark_menu();
+      return false;
+    }
+  }
+  bookmarks.push(data);
+  save_state();
+  update_boookmark_menu();
+  return true;
+}
 
 
 
@@ -520,15 +582,8 @@ function load_state() {
   const contentsString = decoder.decode(contents);
   let data = JSON.parse(contentsString);
   bookmarks = data.bookmarks;
-
-  for (let i in bookmarks) {
-    let tab = new_tab_from_data(data.bookmarks[i]);
-    tab.navigation_view.tab_view.set_page_pinned(tab.navigation_view.tab_page, true);
-    tab.navigation_view.visible_page.child.pin.add_css_class("success");
-  }
   log("loaded state");
 }
-
 
 const filter_actions = [];
 const filter_options = {
