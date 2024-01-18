@@ -27,7 +27,7 @@ import GLib from 'gi://GLib';
 import Adw from 'gi://Adw';
 
 
-import { SearchResult, SearchResultPageWeaponProperty, SearchResultPageArmor, SearchResultPageSpell, SearchResultPageMagicGear, SearchResultPageSkill, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubrace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
+import { SearchResult, SearchResultPageBundle, SearchResultPageWeaponProperty, SearchResultPageArmor, SearchResultPageSpell, SearchResultPageMagicGear, SearchResultPageSkill, SearchResultPageTrait, SearchResultPageGear, SearchResultPageRace, SearchResultPageSubrace, SearchResultPageSubclass, SearchResultPageClass, SearchResultPageMonster, SearchResultPageFeature, SearchResultPageEquipmentCategory, SearchResultPageAbilityScore, SearchResultPageAlignment } from "./results.js";
 import {} from "./modules.js";
 
 export const Tab = GObject.registerClass({
@@ -41,6 +41,7 @@ import { SheetTab } from "./character_sheet.js";
 
 
 import { API } from './api.js';
+// import { API } from './api2.js';
 import { DBUS } from './dbus.js';
 
 const use_local = true;
@@ -470,26 +471,23 @@ export const navigate = (data, navigation_view) => {
 
 export const get_sync = (url) => {
   if (use_local) {
-    // log("yay local request " + url);
     let sub = url.split("/")[2];
     sub = sub.split("-").join("_");
     let array = API[sub];
-    if (!url.split("/")[3]) {
+    let key = url.split("/")[3];
+    if (!key) {
       return { results: array };
     }
-    let key = url.split("/")[3];
     if (url.split("/")[4]) {
       array = API[url.split("/")[4]];
-      return array.filter((i) => i.url.includes(url.split("/")[3]));
+      return array.filter((i) => i.url.includes(key));
     }
     let index = array.map((i) => i.index).indexOf(key);
     return array[index];
   } else {
     let msg = Soup.Message.new('GET', 'https://www.dnd5eapi.co' + url);
 
-    log("sending");
     let s = session.send_and_read(msg, Gio.Cancellable.new()).get_data();
-    log("parsing");
     return JSON.parse(Decoder.decode(s));
   }
 }
@@ -502,10 +500,8 @@ export const get_any_sync = (url) => {
 
 
 export const get_any_async = (url, callback) => {
-  log("+++++++++++++++++++++++++");
   let msg = Soup.Message.new('GET', 'https://www.dnd5eapi.co' + url);
   session.send_and_read_async(msg, 1, Gio.Cancellable.new(), (a, b, c) => { callback(session.send_and_read_finish(b).get_data()); });
-  log("---------------");
 }
 
 
