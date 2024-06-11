@@ -1,3 +1,5 @@
+moved to: https://github.com/qwertzuiopy/Libellus
+
 # Questscribe
 (title is work in progress)
 
